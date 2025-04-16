@@ -1,0 +1,117 @@
+{
+  "items": [
+    {
+      "title": "Adding Payroll Featuresz",
+      "body": "To add payroll features to your QuickBooks account, follow these steps:\r\n1. Navigate to Employees > Payroll Setup\r\n2. Click on 'Set up payroll'\r\n3. Choose your payroll plan (Basic, Enhanced, or Full Service)\r\n4. Enter your business information\r\n5. Add employee details\r\n6. Set up payroll taxes\r\n7. Complete payroll setup by following the on-screen instructions",
+      "index_name": "one",
+      "query_strings": [
+        "how do I add payrolls?",
+        "setting up payroll",
+        "payroll setup instructions",
+        "how to enable payroll"
+      ],
+      "user_fields_mapping": {
+        "region32": [
+          "US",
+          "Canada"
+        ],
+        "age": [
+          "12",
+          "23"
+        ]
+      },
+      "tags": [
+        "SDR",
+        "Bulletzzs"
+      ]
+    },
+    {
+      "title": "Tax Form Filing Deadlines",
+      "body": "Here are the important tax filing deadlines:\r\n- W-2 Forms: Must be provided to employees by January 31\r\n- Quarterly Payroll Taxes (Form 941): Due at the end of the month following each quarter\r\n- Annual Federal Unemployment (FUTA) Tax Return (Form 940): Due January 31\r\n- 1099 Forms: Must be provided to contractors by January 31 and filed with the IRS by February 28",
+      "index_name": "two",
+      "query_strings": [
+        "when are tax forms dues?",
+        "tax filing deadlines",
+        "when do I need to submit tax forms?",
+        "W-2 deadline",
+        "1099 due date"
+      ],
+      "user_fields_mapping": {
+        "region32": [
+          "US",
+          "Canada",
+          "UAE"
+        ],
+        "age": [
+          "12",
+          "23"
+        ]
+      },
+      "tags": []
+    },
+    {
+      "title": "Setting Up International Payments",
+      "body": "To set up international payments in QuickBooks:\r\n1. Go to Banking > Bank Feeds > Set Up Bank Feed\r\n2. Select your bank or 'Connect to a different bank'\r\n3. For international payments, select the currency\r\n4. Enter your bank account details\r\n5. Set up the payment method\r\n6. Test the connection with a small transaction\r\n7. Start using international payments",
+      "index_name": "three!",
+      "query_strings": [
+        "how to make international payments",
+        "global payment setup",
+        "paying vendors internationally",
+        "foreign currency payments"
+      ],
+      "user_fields_mapping": {
+        "region32": [
+          "US",
+          "Canada",
+          "Serbia",
+          "Croatia"
+        ],
+        "age": [
+          "12",
+          "23"
+        ]
+      },
+      "tags": []
+    },
+    {
+      "title": "Setting Up International Payments 2",
+      "body": "To set up international payments in QuickBooks:\r\n1. Go to Banking > Bank Feeds > Set Up Bank Feed\r\n2. Select your bank or 'Connect to a different bank'\r\n3. For international payments, select the currency\r\n4. Enter your bank account details\r\n5. Set up the payment method\r\n6. Test the connection with a small transaction\r\n7. Start using international payments",
+      "index_name": "three",
+      "query_strings": [
+        "how to make national payment",
+        "local payment setup",
+        "paying vendors here",
+        "local currency payments"
+      ],
+      "user_fields_mapping": {
+        "region32": [
+          "US",
+          "Canada",
+          "Serbia",
+          "Croatia"
+        ],
+        "age": [
+          "12",
+          "23"
+        ]
+      },
+      "tags": [
+        "SDR",
+        "PPP"
+      ]
+    },
+    {
+      "title": "sfsf",
+      "body": "sfsf",
+      "index_name": "three",
+      "query_strings": [
+        "blue moon"
+      ],
+      "user_fields_mapping": {
+        "region32": "US",
+        "age": "23"
+      },
+      "tags": []
+    }
+  ]
+}

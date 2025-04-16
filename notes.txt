@@ -1,0 +1,15 @@
+
+
+
+pv2\Scripts\activate
+
+
+uvicorn plannerv2.main:app --reload
+
+cd C:\Users\dusan\OneDrive\Desktop\pp
+
+
+##################
+
+
+python -m venv pv2
