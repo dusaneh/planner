@@ -4,28 +4,27 @@ const chatBox = document.getElementById('chat-box');
 const chatForm = document.getElementById('chat-form');
 const userInput = document.getElementById('user-input');
 const sendButton = chatForm.querySelector('button');
+const resetButton = document.getElementById('reset-button'); // Get reset button
 
 // Admin Panel Elements
+// ... (Admin elements remain the same) ...
 const adminUnderstanding = document.getElementById('admin-understanding');
 const adminFunctions = document.getElementById('admin-functions');
 const adminSummarization = document.getElementById('admin-summarization');
 const adminErrorSection = document.getElementById('admin-error-section');
 const adminErrorMessage = document.getElementById('admin-error-message');
 
+
 let websocket;
 let currentAiMessageDiv = null;
 let currentThinkingUl = null;
-
-// --- Animation Configuration ---
-const thoughtFadeInDuration = 500; // ms
-const interThoughtDelay = 100;   // ms
-
-// --- Animation Queue ---
 let thoughtQueue = [];
 let isProcessingQueue = false;
+let isThinkingGloballyVisible = false;
 
-// --- ADDED: Global state for thinking visibility ---
-let isThinkingGloballyVisible = false; // Start collapsed
+// --- Animation Configuration ---
+const thoughtFadeInDuration = 500;
+const interThoughtDelay = 100;
 
 // --- WebSocket Connection ---
 // ... (connectWebSocket remains the same) ...
@@ -40,6 +39,7 @@ function connectWebSocket() {
         console.log("WebSocket connection opened");
         userInput.disabled = false;
         sendButton.disabled = false;
+        resetButton.disabled = false; // Enable reset button on connect
         userInput.focus();
         const connError = document.getElementById('connection-error');
         if (connError) connError.remove();
@@ -60,6 +60,7 @@ function connectWebSocket() {
         addErrorMessageToChat("Connection error. Please refresh the page.", "connection-error");
         userInput.disabled = true;
         sendButton.disabled = true;
+        resetButton.disabled = true; // Disable reset button on error
     };
 
     websocket.onclose = (event) => {
@@ -69,18 +70,17 @@ function connectWebSocket() {
         }
         userInput.disabled = true;
         sendButton.disabled = true;
+        resetButton.disabled = true; // Disable reset button on close
         currentAiMessageDiv = null;
         currentThinkingUl = null;
         thoughtQueue = [];
         isProcessingQueue = false;
-        // Reset global thinking state on close? Optional, maybe keep user preference.
-        // isThinkingGloballyVisible = false;
     };
 }
 
 
 // --- UI Update Functions ---
-// ... (addUserMessage, createAiMessageContainer remain the same) ...
+// ... (addUserMessage, createAiMessageContainer, queueThoughtOrStatusForAnimation, processThoughtQueue, addFinalResponseToCurrentMessage, addErrorMessageToChat, toggleThinking, updateAdminPanel, scrollToBottom remain the same) ...
 function addUserMessage(message) {
     const messageDiv = document.createElement('div');
     messageDiv.classList.add('message', 'user-message');
@@ -109,7 +109,6 @@ function createAiMessageContainer() {
     scrollToBottom();
     return contentDiv;
 }
-
 
 function queueThoughtOrStatusForAnimation(text, isStatus = false) {
     thoughtQueue.push({ text: text, isStatus: isStatus });
@@ -147,18 +146,15 @@ function processThoughtQueue() {
     if (!thinkingDiv) {
         toggleButton = document.createElement('button');
         toggleButton.classList.add('toggle-thinking');
-        // --- MODIFIED: Set initial state based on global ---
         toggleButton.textContent = isThinkingGloballyVisible ? 'Hide thinking' : 'Show thinking';
-        toggleButton.onclick = () => toggleThinking(toggleButton); // Keep using the modified toggle function
+        toggleButton.onclick = () => toggleThinking(toggleButton);
         contentDiv.insertBefore(toggleButton, contentDiv.firstChild);
 
         thinkingDiv = document.createElement('div');
         thinkingDiv.classList.add('thinking-process');
-        // --- MODIFIED: Set initial hidden state based on global ---
         if (!isThinkingGloballyVisible) {
             thinkingDiv.classList.add('hidden');
         }
-        // ----------------------------------------------------
         const thinkingTitle = document.createElement('h4');
         thinkingTitle.textContent = 'Thinking Process:';
         thinkingDiv.appendChild(thinkingTitle);
@@ -179,7 +175,6 @@ function processThoughtQueue() {
 
     if (currentThinkingUl) {
         currentThinkingUl.appendChild(li);
-        // Only scroll if the thinking section is actually visible
         if (isThinkingGloballyVisible) {
              scrollToBottom();
         }
@@ -196,7 +191,6 @@ function processThoughtQueue() {
     }, interThoughtDelay);
 }
 
-// ... (addFinalResponseToCurrentMessage remains the same) ...
 function addFinalResponseToCurrentMessage(aiMessageText, citationsMap) {
      if (!currentAiMessageDiv) {
         console.error("Trying to add final response but no current AI message container exists.");
@@ -260,7 +254,6 @@ function addFinalResponseToCurrentMessage(aiMessageText, citationsMap) {
     isProcessingQueue = false;
 }
 
-// ... (addErrorMessageToChat remains the same) ...
 function addErrorMessageToChat(errorMessage, elementId = null) {
     if (elementId) {
         const existingError = document.getElementById(elementId);
@@ -277,14 +270,24 @@ function addErrorMessageToChat(errorMessage, elementId = null) {
     scrollToBottom();
 }
 
+// --- ADDED: Function to add system messages ---
+function addSystemMessageToChat(systemMessage) {
+    const messageDiv = document.createElement('div');
+    messageDiv.classList.add('message', 'system-message'); // Use a new class
 
-// --- MODIFIED: Toggle ALL thinking sections ---
+    const contentDiv = document.createElement('div');
+    contentDiv.classList.add('message-content');
+    contentDiv.textContent = systemMessage;
+    messageDiv.appendChild(contentDiv);
+    chatBox.appendChild(messageDiv);
+    scrollToBottom();
+}
+// --------------------------------------------
+
 function toggleThinking(button) {
-    // 1. Toggle the global state
     isThinkingGloballyVisible = !isThinkingGloballyVisible;
     console.log("Global thinking visibility:", isThinkingGloballyVisible);
 
-    // 2. Update all thinking sections in the chat
     const allToggleButtons = document.querySelectorAll('#chat-box .toggle-thinking');
     allToggleButtons.forEach(btn => {
         const contentDiv = btn.closest('.message-content');
@@ -301,19 +304,14 @@ function toggleThinking(button) {
         }
     });
 
-    // 3. Scroll if revealing might hide content (optional, based on clicked button)
     if (isThinkingGloballyVisible && button) {
-         // Check if the specific section expanded might need scroll adjustment
          const contentDiv = button.closest('.message-content');
          if (contentDiv) {
-            // Simple scroll to bottom might be sufficient
             scrollToBottom();
-            // More complex logic could check if the bottom of contentDiv is visible
          }
     }
 }
 
-// ... (updateAdminPanel remains the same as the previous version with flags) ...
 function updateAdminPanel(adminData) {
     adminUnderstanding.innerHTML = '';
     adminFunctions.innerHTML = '';
@@ -321,19 +319,16 @@ function updateAdminPanel(adminData) {
     adminErrorSection.style.display = 'none';
     adminErrorMessage.textContent = '';
 
-    // Understanding - Now updates in real-time
+    // Understanding
     if (adminData.understanding_thoughts && adminData.understanding_thoughts.length > 0) {
         adminData.understanding_thoughts.forEach(thought => {
             const li = document.createElement('li');
             li.textContent = thought;
             adminUnderstanding.appendChild(li);
         });
-    } else {
-        // Show placeholder only if list is truly empty after processing
-        // adminUnderstanding.innerHTML = '<li>No planning thoughts yet...</li>';
     }
 
-    // Function Calling (with Flags and Raw Result Expando)
+    // Function Calling
     if (adminData.function_calls_made && adminData.function_calls_made.length > 0) {
         adminData.function_calls_made.forEach(call => {
             const li = document.createElement('li');
@@ -378,19 +373,15 @@ function updateAdminPanel(adminData) {
             }
             adminFunctions.appendChild(li);
         });
-    } else {
-        // adminFunctions.innerHTML = '<li>No functions called yet...</li>';
     }
 
-    // Summarization - Now updates in real-time
+    // Summarization
     if (adminData.summarization_thoughts && adminData.summarization_thoughts.length > 0) {
         adminData.summarization_thoughts.forEach(thought => {
             const li = document.createElement('li');
             li.textContent = thought;
             adminSummarization.appendChild(li);
         });
-    } else {
-       // adminSummarization.innerHTML = '<li>No summarization thoughts yet...</li>';
     }
 
      // Error
@@ -400,26 +391,23 @@ function updateAdminPanel(adminData) {
     }
 }
 
-
-// ... (scrollToBottom remains the same) ...
 function scrollToBottom() {
     setTimeout(() => {
         chatBox.scrollTop = chatBox.scrollHeight;
     }, 50);
 }
 
-// ... (handleWebSocketMessage remains the same) ...
+
+// --- WebSocket Message Handler (MODIFIED for system_message) ---
 function handleWebSocketMessage(data) {
     switch (data.type) {
         case 'thought':
-            // This now triggers both chat thought animation and admin update (via backend)
             queueThoughtOrStatusForAnimation(data.data, false);
             break;
         case 'status':
              queueThoughtOrStatusForAnimation(data.data, true);
             break;
         case 'admin_update':
-            // This will be called frequently now as thoughts arrive
             updateAdminPanel(data.data);
             break;
         case 'final_response':
@@ -439,12 +427,18 @@ function handleWebSocketMessage(data) {
             thoughtQueue = [];
             isProcessingQueue = false;
             break;
+        // --- ADDED: Handle System Messages (like reset confirmation) ---
+        case 'system_message':
+            console.log("Received system message:", data.data);
+            addSystemMessageToChat(data.data);
+            break;
+        // -------------------------------------------------------------
         default:
             console.warn("Received unknown message type:", data.type);
     }
 }
 
-// ... (Event Listener remains the same) ...
+// --- Event Listeners ---
 chatForm.addEventListener('submit', async (e) => {
     e.preventDefault();
     const message = userInput.value.trim();
@@ -457,6 +451,7 @@ chatForm.addEventListener('submit', async (e) => {
     userInput.value = '';
     userInput.disabled = true;
     sendButton.disabled = true;
+    resetButton.disabled = true; // Disable reset during processing
 
     currentAiMessageDiv = null;
     currentThinkingUl = null;
@@ -472,9 +467,43 @@ chatForm.addEventListener('submit', async (e) => {
         error: null
     });
 
-    websocket.send(JSON.stringify({ message: message }));
+    websocket.send(JSON.stringify({ message: message })); // Send user query
 });
+
+// --- ADDED: Reset Button Listener ---
+resetButton.addEventListener('click', () => {
+    if (websocket && websocket.readyState === WebSocket.OPEN) {
+        console.log("Sending reset request...");
+        // Clear the chat box immediately for visual feedback
+        chatBox.innerHTML = '';
+        // Add back initial welcome message? Optional.
+        // addSystemMessageToChat("Hello! How can I help you with QuickBooks today?"); // Or wait for server confirmation
+
+        // Clear admin panel immediately
+         updateAdminPanel({
+            understanding_thoughts: [],
+            function_calls_made: [],
+            summarization_thoughts: [],
+            error: null
+        });
+
+        // Send the reset command
+        websocket.send(JSON.stringify({ type: "reset" }));
+
+        // Re-enable input after sending reset (optional, user might type immediately)
+        // userInput.disabled = false;
+        // sendButton.disabled = false;
+        // resetButton.disabled = false; // Re-enable reset button
+        // userInput.focus();
+
+    } else {
+        console.error("Cannot reset: WebSocket is not open.");
+        addErrorMessageToChat("Cannot reset chat. Connection is closed.");
+    }
+});
+// ---------------------------------
 
 
 // --- Initialize ---
-connectWebSocket();
+connectWebSocket(); // Connect on page load
+resetButton.disabled = true; // Start disabled until WS connects

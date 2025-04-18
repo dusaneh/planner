@@ -12,6 +12,7 @@ import asyncio
 import traceback # For detailed error logging
 
 # --- Import your helper functions ---
+# ... (Imports remain the same) ...
 try:
     import helper2 as hlp
     print("Main: Helper functions loaded successfully.")
@@ -31,6 +32,7 @@ except ImportError:
 except AttributeError as e:
     print(f"Main ERROR: Missing expected variables/functions in helper2.py: {e}")
     raise
+
 
 # --- FastAPI App Setup ---
 app = FastAPI()
@@ -58,9 +60,24 @@ async def websocket_endpoint(websocket: WebSocket):
         while True:
             raw_data = await websocket.receive_text()
             message_data = json.loads(raw_data)
-            current_user_query = message_data.get("message")
 
+            # --- MODIFIED: Check for Reset Command ---
+            message_type = message_data.get("type")
+            if message_type == "reset":
+                print("Main: Received reset command.")
+                chat_history.clear()
+                sticky_hint_for_next_turn = None
+                print("Main: Chat history and sticky hint reset.")
+                # Send confirmation back to client
+                await websocket.send_json({"type": "system_message", "data": "Chat history has been reset."})
+                continue # Skip the rest of the loop and wait for next message
+            # -----------------------------------------
+
+            # --- Existing Logic for Handling User Query ---
+            current_user_query = message_data.get("message")
             if not current_user_query:
+                # Ignore messages without a "message" key if not a reset command
+                print(f"Main: Received message without 'message' key: {message_data}")
                 continue
 
             print(f"\n>>> Received User Query via WS: {current_user_query}")
@@ -84,7 +101,7 @@ async def websocket_endpoint(websocket: WebSocket):
             all_thoughts_this_turn = []
 
             try:
-                # --- Step 1: Planning/Routing ---
+                # Step 1: Planning/Routing
                 print(f"--- Main: Step 1: Planning/Routing (Hint: {current_sticky_hint}) ---")
                 async for item in hlp.process_quickbooks_query(
                     new_user_query=current_user_query,
@@ -94,6 +111,7 @@ async def websocket_endpoint(websocket: WebSocket):
                     available_tools=available_tools,
                     sticky_function_hint=current_sticky_hint
                 ):
+                    # ... (rest of Step 1 logic sending thoughts/admin updates)
                     item_type = item.get("type")
                     item_data = item.get("data")
 
@@ -101,9 +119,7 @@ async def websocket_endpoint(websocket: WebSocket):
                         admin_steps["understanding_thoughts"].append(item_data)
                         all_thoughts_this_turn.append(item_data)
                         await websocket.send_json({"type": "thought", "data": item_data})
-                        # --- MODIFIED: Send admin update immediately on thought ---
                         await websocket.send_json({"type": "admin_update", "data": admin_steps})
-                        # ---------------------------------------------------------
                     elif item_type == "function_calls":
                         plan_calls_local = item_data
                         admin_steps["function_calls_made"] = []
@@ -115,15 +131,16 @@ async def websocket_endpoint(websocket: WebSocket):
                                      "all_args": call.get("arguments", {}),
                                      "raw_result": None
                                  })
-                        # Send admin update after function calls are decided
                         await websocket.send_json({"type": "admin_update", "data": admin_steps})
                     elif item_type == "explanation":
                         explanation_local = item_data
                     elif item_type == "error":
                         raise Exception(f"Planning Error: {item_data}")
 
-                # --- Step 2: Simulate Function Execution ---
+
+                # Step 2: Simulate Function Execution
                 print("\n--- Main: Step 2: Simulate Function Execution ---")
+                # ... (rest of Step 2 logic calling stubs, handling results, setting sticky hint) ...
                 if plan_calls_local:
                     retrieval_results_local = []
                     simulation_tasks = []
@@ -173,24 +190,21 @@ async def websocket_endpoint(websocket: WebSocket):
                                     admin_steps["function_calls_made"][original_index]["raw_result"] = error_result
                                 retrieval_results_local.append(error_result) # Add error to results
 
-                    # Send admin update *after* all function calls simulated
                     await websocket.send_json({"type": "admin_update", "data": admin_steps})
                 else:
                     print("Main No function calls proposed.")
 
 
-                # --- Step 3: Generate Final Response OR Use Follow-up Question ---
+                # Step 3: Generate Final Response OR Use Follow-up Question
                 print("\n--- Main: Step 3: Determine Final Response ---")
-
+                # ... (rest of Step 3 logic calling generate_final_response or using follow_up/explanation) ...
                 if follow_up_question_asked:
                     print(f"Main: Using follow-up question as response: {follow_up_question_asked}")
                     final_response_text_local = follow_up_question_asked
                     citation_map_local = {}
                     admin_steps["summarization_thoughts"] = ["Skipped summarization - Follow-up question asked by function."]
                     await websocket.send_json({"type": "status", "data": "Asking a clarifying question..."})
-                    # --- MODIFIED: Send admin update after setting follow-up status ---
                     await websocket.send_json({"type": "admin_update", "data": admin_steps})
-                    # -----------------------------------------------------------------
 
                 else:
                     history_for_summary = current_turn_history + [{"role": "user", "content": current_user_query}]
@@ -217,9 +231,7 @@ async def websocket_endpoint(websocket: WebSocket):
                                 admin_steps["summarization_thoughts"].append(item_data)
                                 all_thoughts_this_turn.append(item_data)
                                 await websocket.send_json({"type": "thought", "data": item_data})
-                                # --- MODIFIED: Send admin update immediately on thought ---
                                 await websocket.send_json({"type": "admin_update", "data": admin_steps})
-                                # ---------------------------------------------------------
                             elif item_type == "final_response_text":
                                 final_response_text_local = item_data
                             elif item_type == "citation_map":
@@ -238,20 +250,16 @@ async def websocket_endpoint(websocket: WebSocket):
                         final_response_text_local = explanation_local
                         citation_map_local = {}
                         admin_steps["summarization_thoughts"] = ["No summarization needed - used planner explanation."]
-                        # --- MODIFIED: Send admin update after setting explanation status ---
                         await websocket.send_json({"type": "admin_update", "data": admin_steps})
-                        # --------------------------------------------------------------------
                     else: # Fallback
                         print("Main No retrieval results or planner explanation.")
                         final_response_text_local = "I wasn't able to retrieve or generate a specific answer for that."
                         citation_map_local = {}
                         admin_steps["error"] = "Could not generate response from planning or retrieval."
-                        # --- MODIFIED: Send admin update after setting fallback status ---
                         await websocket.send_json({"type": "admin_update", "data": admin_steps})
-                        # -----------------------------------------------------------------
 
-                # --- Send Final Response Package ---
-                # This happens after all thoughts/status updates for the turn
+
+                # Send Final Response Package
                 await websocket.send_json({
                     "type": "final_response",
                     "data": {
@@ -260,7 +268,6 @@ async def websocket_endpoint(websocket: WebSocket):
                         "thinking_process": all_thoughts_this_turn
                     }
                 })
-                # Send final admin state just to be sure (might be redundant if thoughts were sent)
                 await websocket.send_json({"type": "admin_update", "data": admin_steps})
 
 
@@ -274,7 +281,8 @@ async def websocket_endpoint(websocket: WebSocket):
                 final_response_text_local = f"Sorry, an internal error occurred."
 
 
-            # --- Step 4: Update Global History ---
+            # Step 4: Update Global History
+            # Only update history for actual user queries, not reset commands
             chat_history.append({"role": "user", "content": current_user_query})
             if final_response_text_local:
                 chat_history.append({"role": "assistant", "content": final_response_text_local})

@@ -1,60 +1,51 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>QuickBooks AI Chat (Streaming)</title>
+    <title>QuickBooks AI Chat</title>
     <link rel="stylesheet" href="/static/style.css">
 </head>
 <body>
     <div class="app-container">
         <div class="chat-container">
             <div id="chat-box">
-                <!-- Initial Welcome Message -->
-                 <div class="message ai-message" id="welcome-message">
+                <!-- Initial welcome message -->
+                <div class="message ai-message">
                     <div class="message-content">
                         <p>Hello! How can I help you with QuickBooks today?</p>
                     </div>
-                 </div>
-                 <!-- Dynamic messages will be added here -->
+                </div>
+                <!-- Chat messages will be appended here -->
             </div>
             <div class="input-area">
                 <form id="chat-form">
-                    <input type="text" id="user-input" placeholder="Ask QuickBooks..." autocomplete="off" required disabled> <!-- Start disabled until WS connects -->
-                    <button type="submit" disabled>Send</button> <!-- Start disabled -->
+                    <input type="text" id="user-input" placeholder="Ask QuickBooks..." autocomplete="off" disabled>
+                    <button type="submit" disabled>Send</button>
                 </form>
+                 <!-- ADDED: Reset Button -->
+                 <button id="reset-button" title="Clear chat history and start over">Reset Chat</button>
+                 <!-- -------------------- -->
             </div>
         </div>
-
         <div class="admin-panel">
             <h3>Admin Panel</h3>
-            <div id="admin-content">
-                <div class="admin-section">
-                    <h4>User Understanding (Planning)</h4>
-                    <ul id="admin-understanding">
-                        <li>Waiting for interaction...</li>
-                    </ul>
-                </div>
-                <div class="admin-section">
-                    <h4>Function Calling</h4>
-                    <ul id="admin-functions">
-                         <li>Waiting for interaction...</li>
-                    </ul>
-                </div>
-                 <div class="admin-section">
-                    <h4>Summarization</h4>
-                    <ul id="admin-summarization">
-                         <li>Waiting for interaction...</li>
-                    </ul>
-                </div>
-                 <div class="admin-section admin-error" id="admin-error-section" style="display: none;">
-                    <h4>Error</h4>
-                    <p id="admin-error-message"></p>
-                </div>
+            <div class="admin-section">
+                <h4>User Understanding (Planning)</h4>
+                <ul id="admin-understanding"></ul>
+            </div>
+            <div class="admin-section">
+                <h4>Function Calling</h4>
+                <ul id="admin-functions"></ul>
+            </div>
+            <div class="admin-section">
+                <h4>Summarization</h4>
+                <ul id="admin-summarization"></ul>
+            </div>
+             <div id="admin-error-section" class="admin-section admin-error" style="display: none;">
+                <h4>Error</h4>
+                <p id="admin-error-message"></p>
             </div>
         </div>
     </div>
-
     <script src="/static/script.js"></script>
 </body>
 </html>
