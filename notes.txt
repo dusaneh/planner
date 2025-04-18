@@ -4,7 +4,7 @@
 pv2\Scripts\activate
 
 
-uvicorn plannerv2.main:app --reload
+uvicorn main:app --reload
 
 cd C:\Users\dusan\OneDrive\Desktop\pp
 

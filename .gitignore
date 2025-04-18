@@ -1,2 +1,4 @@
 pv2/
 keys.py
+__pycache__/
+*.pyc
