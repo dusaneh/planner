@@ -1,6 +1,6 @@
-# QuickBooks Assistant Chatbot
+# New Orch Demo
 
-A sophisticated AI-powered chatbot application for QuickBooks support that analyzes user queries, routes them to appropriate knowledge tools, and delivers high-quality answers with proper citations and source attribution.
+A sophisticated AI-powered chatbot application for support that analyzes user queries, routes them to appropriate knowledge tools, and delivers high-quality answers with proper citations and source attribution.
 
 ## Overview
 
@@ -48,7 +48,7 @@ The system implements business rules for handling sensitive topics (e.g., legal 
 - **Reference Data**: Defines example data structures (user context, business info, available tools)
 - **Knowledge Tools**:
   - `payroll_qna_retrieval`: Handles payroll questions with special logic for "contribution" queries
-  - `general_product_support_retrieval`: Processes general QuickBooks how-to questions
+  - `general_product_support_retrieval`: Processes general how-to questions
   - `legal_compliance_retrieval`: Manages legal/compliance queries with standardized responses
   - `user_data_query`: Simulates retrieval of user-specific account data
 - **Core LLM Interaction**: Implements structured communication with Gemini via JSON Lines
